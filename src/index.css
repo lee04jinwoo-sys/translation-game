@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', 'Georgia', serif;
+  --font-kr-serif: 'Noto Serif KR', 'Georgia', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Warm Paper & Parchment Aesthetic Colors */
+  --color-app-bg: #f5f0e6;
+  --color-app-surface: #fdfbf7;
+  --color-app-border: #e6e0d2;
+  --color-app-text-primary: #2c2a29;
+  --color-app-text-secondary: #706b63;
+  --color-app-accent: #5c5243;
+  --color-app-hover: rgba(0, 0, 0, 0.04);
+}
+
+@layer base {
+  body {
+    @apply bg-app-bg text-app-text-primary h-screen overflow-hidden font-sans m-0 flex flex-col;
+  }
+  #root {
+    @apply flex-1 flex flex-col overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .fill-1 {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  
+  /* Shadowing Player specific UI utilities */
+  .header-btn {
+    @apply bg-black/5 border border-black/10 text-app-text-secondary rounded-lg px-3 py-1.5 text-[13px] font-medium cursor-pointer transition-all outline-none;
+  }
+  .header-btn:hover {
+    @apply bg-black/10 text-app-text-primary;
+  }
+
+  .tab-btn {
+    @apply flex-1 p-2 text-[13px] font-medium text-app-text-secondary bg-transparent border-none rounded-lg cursor-pointer transition-all;
+  }
+  .tab-btn:hover {
+    @apply text-app-text-primary;
+  }
+  .tab-btn.active {
+    @apply bg-black/10 text-app-text-primary shadow-sm;
+  }
+}
+
+/* Custom Scrollbar for sleek UI */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Card Game Animations ===== */
+
+/* Card stack: stacked cards behind the main one */
+.card-stack {
+  position: relative;
+  perspective: 800px;
+}
+
+.card-stack-item {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+/* Card enter animation */
+@keyframes card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-enter {
+  animation: card-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Card exit animation (slide left + fade) */
+@keyframes card-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-120px) rotateY(-15deg);
+  }
+}
+
+.card-exit,
+.card-fly-away {
+  animation: card-exit 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Card fly to saved animation */
+@keyframes card-fly-save {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.6) translateX(200px) translateY(-50px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3) translateX(400px) translateY(-100px);
+  }
+}
+
+.card-fly-save {
+  animation: card-fly-save 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Draw deck shuffle animation */
+@keyframes deck-shuffle {
+  0% { transform: scale(0.8) rotateZ(-5deg); opacity: 0; }
+  30% { transform: scale(1.03) rotateZ(1deg); opacity: 1; }
+  100% { transform: scale(1) rotateZ(0deg); opacity: 1; }
+}
+
+.deck-shuffle {
+  animation: deck-shuffle 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Combo fire pulse */
+@keyframes combo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.combo-pulse {
+  animation: combo-pulse 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Score pop animation */
+@keyframes score-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.score-pop {
+  animation: score-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Empty deck glow */
+@keyframes draw-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(129, 140, 248, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(129, 140, 248, 0.4); }
+}
+
+.draw-glow {
+  animation: draw-glow 2s ease-in-out infinite;
+}
+
+/* 3D Card Flip & Physical Deck Animations */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.card-flipper {
+  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+/* Card deal off deck animation (LEFT) */
+@keyframes card-deal-next {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateZ(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-400px) rotateZ(-12deg);
+  }
+}
+
+.card-deal-next {
+  animation: card-deal-next 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Card deal off deck animation (RIGHT - Symmetrical Save) */
+@keyframes card-deal-right {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateZ(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(400px) rotateZ(12deg);
+  }
+}
+
+.card-deal-right {
+  animation: card-deal-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Microphone active listening pulse */
+@keyframes mic-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(224, 36, 36, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(224, 36, 36, 0);
+  }
+}
+
+.mic-pulse {
+  animation: mic-pulse 1.4s ease-in-out infinite;
+}
+
+.input-typing-glow:focus {
+  box-shadow: 0 0 0 3px rgba(92, 82, 67, 0.2);
+}
