@@ -336,14 +336,15 @@ export const CardGame: React.FC<CardGameProps> = ({
   // Render REAL upcoming cards in physical deck stack with ZERO FLICKER pre-rendering
   const renderCardStack = () => {
     const isPromoting = cardAnimClass === 'card-deal-next' || cardAnimClass === 'card-deal-right';
-    const stackCards = deck.slice(1, 4);
+    // Slice exactly 2 stack cards (deck[1], deck[2]) to prevent deck[3] from popping up at the bottom
+    const stackCards = deck.slice(1, 3);
     return stackCards.map((card, idx) => {
       // Smoothly promote background cards forward during card deal animation (350ms)
       const effectiveIdx = isPromoting ? idx : idx + 1;
       const offset = effectiveIdx * 9;
       const rotate = effectiveIdx === 0 ? 0 : (effectiveIdx % 2 === 0 ? effectiveIdx * 1.5 : effectiveIdx * -1.5);
       const scale = 1 - effectiveIdx * 0.028;
-      const opacity = effectiveIdx === 0 ? 1 : (0.95 - (effectiveIdx - 1) * 0.15);
+      const opacity = effectiveIdx === 0 ? 1 : 0.85;
       const isNextCard = idx === 0;
 
       return (

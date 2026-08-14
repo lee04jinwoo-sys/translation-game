@@ -7,6 +7,7 @@ interface LeftSidebarProps {
   remainingByLevel: Record<1 | 2 | 3 | 4 | 5, number>;
   levelStats: Record<1 | 2 | 3 | 4 | 5, { solved: number; totalScore: number }>;
   onOpenConfig: () => void;
+  onClearDeck: () => void;
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -16,17 +17,28 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   remainingByLevel,
   levelStats,
   onOpenConfig,
+  onClearDeck,
 }) => {
   return (
     <aside className="w-[290px] xl:w-[310px] border-r border-[#e6e0d2] bg-[#f5f0e6] flex flex-col shrink-0 overflow-y-auto p-3.5 gap-3 scrollbar-thin hidden lg:flex">
-      {/* 1. TOP PRIMARY ACTION: CARD DRAW BUTTON */}
-      <button
-        onClick={onOpenConfig}
-        className="w-full flex items-center justify-center gap-2 h-11 py-2.5 px-4 rounded-xl bg-[#5c5243] hover:bg-[#4a4236] text-white font-semibold text-xs tracking-wide transition-all shadow-sm active:scale-[0.99] border border-[#4a4236]"
-      >
-        <span className="material-symbols-outlined text-[19px]">playing_cards</span>
-        <span>새 덱 가져오기</span>
-      </button>
+      {/* 1. TOP PRIMARY ACTIONS: DRAW & CLEAR DECK BUTTONS */}
+      <div className="flex gap-2">
+        <button
+          onClick={onOpenConfig}
+          className="flex-1 flex items-center justify-center gap-1.5 h-11 py-2.5 px-3 rounded-xl bg-[#5c5243] hover:bg-[#4a4236] text-white font-semibold text-xs tracking-wide transition-all shadow-sm active:scale-[0.99] border border-[#4a4236]"
+        >
+          <span className="material-symbols-outlined text-[18px]">playing_cards</span>
+          <span>새 덱 가져오기</span>
+        </button>
+        <button
+          onClick={onClearDeck}
+          className="flex items-center justify-center gap-1 h-11 py-2.5 px-3 rounded-xl bg-[#fdfbf7] hover:bg-[#eae3d5] text-[#706b63] hover:text-[#e02424] font-semibold text-xs transition-all shadow-sm border border-[#e6e0d2]"
+          title="본 카드 이력 및 덱 초기화"
+        >
+          <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+          <span>비우기</span>
+        </button>
+      </div>
 
       {/* 2. MIDDLE SECTION: STATISTICS CARD */}
       <div className="p-3 rounded-xl bg-[#fdfbf7] border border-[#e6e0d2] flex flex-col gap-2.5 shadow-sm">

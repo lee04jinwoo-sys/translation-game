@@ -138,6 +138,25 @@ export function App() {
     }
   }, [targetCount, selectedLevels, selectedTopics]);
 
+  // Clear deck & reset seen card history
+  const handleClearDeck = useCallback(() => {
+    if (window.confirm('학습 이력을 초기화하고 덱을 새로 가져올까요?')) {
+      seenCardIdsRef.current.clear();
+      setDeck([]);
+      setTotalScore(0);
+      setTotalPlayed(0);
+      setCombo(0);
+      setLevelStats({
+        1: { solved: 0, totalScore: 0 },
+        2: { solved: 0, totalScore: 0 },
+        3: { solved: 0, totalScore: 0 },
+        4: { solved: 0, totalScore: 0 },
+        5: { solved: 0, totalScore: 0 },
+      });
+      drawCards();
+    }
+  }, [drawCards]);
+
   // Initial draw
   useEffect(() => { drawCards(); }, [drawCards]);
 
@@ -358,6 +377,7 @@ export function App() {
           remainingByLevel={remainingByLevel}
           levelStats={levelStats}
           onOpenConfig={() => setIsConfigOpen(true)}
+          onClearDeck={handleClearDeck}
         />
 
         {/* Central Card Game */}
