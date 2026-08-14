@@ -606,37 +606,44 @@ export const CardGame: React.FC<CardGameProps> = ({
                 </div>
 
                 {/* Back Content Area */}
-                <div className="flex-1 overflow-y-auto my-3 flex flex-col gap-3.5 scrollbar-thin">
-                  <div className="flex flex-col gap-1">
-                    <div className="text-xs text-[#706b63]">내 번역:</div>
-                    <div className="text-sm font-medium text-[#2c2a29] p-3 rounded-xl bg-[#f5f0e6] border border-[#e6e0d2] whitespace-pre-wrap break-words">
-                      {userInput}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
+                <div className="flex-1 overflow-y-auto my-3 flex flex-col gap-4 scrollbar-thin justify-center">
+                  {/* English Answer Highlight Box */}
+                  <div className="flex flex-col gap-2 p-4 rounded-2xl bg-[#edf6ee] border-2 border-[#bcf0da] shadow-sm">
                     <div className="flex justify-between items-center">
-                      <div className="text-xs text-[#706b63]">정답 예시:</div>
+                      <span className="text-xs font-bold text-[#03543f] uppercase tracking-wider">
+                        ✨ 원어민 정답 문장
+                      </span>
                       {/* Manual Ultra-HD Studio Audio Replay Button */}
                       <button
+                        type="button"
                         onClick={() => playStudioAudio(currentCard.english, currentCard.id)}
                         className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1 ${
                           isPlayingAudio
                             ? 'bg-[#5c5243] text-white border-[#5c5243] animate-pulse'
-                            : 'bg-[#f5f0e6] text-[#5c5243] hover:text-[#2c2a29] border-[#e6e0d2] hover:bg-[#eae3d5]'
+                            : 'bg-white text-[#03543f] hover:text-[#2c2a29] border-[#bcf0da] hover:bg-[#edf6ee]'
                         }`}
                         title="Google Chirp3-HD 원어민 음성 다시 듣기 (R / V)"
                       >
                         <span className="material-symbols-outlined text-base">
                           {isPlayingAudio ? 'graphic_eq' : 'volume_up'}
                         </span>
-                        <span>{isPlayingAudio ? '음성 재생 중...' : 'Chirp3-HD 성우 (R)'}</span>
+                        <span>{isPlayingAudio ? '음성 재생 중...' : 'Chirp3-HD 발음 (R)'}</span>
                       </button>
                     </div>
-                    <div className="text-sm font-medium text-[#03543f] p-3 rounded-xl bg-[#edf6ee] border border-[#bcf0da]">
+                    <p className="text-lg lg:text-xl font-bold text-[#03543f] leading-relaxed break-words">
                       {currentCard.english}
-                    </div>
+                    </p>
                   </div>
+
+                  {/* My Translation (if submitted) */}
+                  {userInput.trim() && (
+                    <div className="flex flex-col gap-1 px-1">
+                      <div className="text-xs font-medium text-[#706b63]">내 번역:</div>
+                      <div className="text-sm font-medium text-[#2c2a29] p-3 rounded-xl bg-[#f5f0e6] border border-[#e6e0d2] whitespace-pre-wrap break-words">
+                        {userInput}
+                      </div>
+                    </div>
+                  )}
 
                   {grammarIssues.length > 0 && (
                     <div className="flex flex-col gap-2 mt-1">
