@@ -98,6 +98,13 @@ export function App() {
 
   const seenCardIdsRef = useRef<Set<number>>(new Set());
   const submittedTimeRef = useRef<number>(0);
+  const currentCardRef = useRef<CardItem | null>(null);
+  const userInputRef = useRef<string>('');
+
+  useEffect(() => {
+    currentCardRef.current = currentCard;
+    userInputRef.current = userInput;
+  }, [currentCard, userInput]);
 
   useEffect(() => {
     if (hasSubmitted) {
@@ -170,8 +177,11 @@ export function App() {
         setIsScoring(false);
         setScore(resScore);
 
-        if (currentCard) {
-          const currentLevel = currentCard.difficulty.level;
+        const card = currentCardRef.current;
+        const inputVal = userInputRef.current;
+
+        if (card) {
+          const currentLevel = card.difficulty.level;
           setTotalScore(prev => prev + resScore);
           setTotalPlayed(prev => prev + 1);
 
@@ -201,12 +211,12 @@ export function App() {
 
           setHistoryItems(prev => [
             {
-              id: currentCard.id,
-              korean: currentCard.korean,
-              userEnglish: userInput,
-              referenceEnglish: currentCard.english,
+              id: card.id,
+              korean: card.korean,
+              userEnglish: inputVal,
+              referenceEnglish: card.english,
               score: resScore,
-              difficulty: currentCard.difficulty,
+              difficulty: card.difficulty,
               timestamp: Date.now(),
             },
             ...prev,
@@ -223,7 +233,7 @@ export function App() {
     return () => {
       workerRef.current?.terminate();
     };
-  }, [currentCard, userInput]);
+  }, []);
 
   // Toggle Save item to Anki
   const toggleSave = useCallback((item: SavedItem) => {

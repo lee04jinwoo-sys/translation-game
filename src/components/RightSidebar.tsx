@@ -35,9 +35,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onExportAnki,
 }) => {
   return (
-    <aside className="w-[320px] border-l border-[#e6e0d2] bg-[#fdfbf7] flex flex-col shrink-0 overflow-hidden text-[#2c2a29]">
-      {/* Tabs */}
-      <div className="flex border-b border-[#e6e0d2] shrink-0 bg-[#f5f0e6]">
+    <aside className="fixed right-0 top-[53px] bottom-0 z-30 w-[320px] border-l border-[#e6e0d2] bg-[#fdfbf7] flex flex-col shrink-0 overflow-hidden text-[#2c2a29] shadow-2xl transition-transform duration-300 ease-out translate-x-[calc(100%-20px)] hover:translate-x-0 group">
+      {/* Left Edge Hover Trigger Tab */}
+      <div className="absolute left-0 top-0 bottom-0 w-5 bg-[#5c5243]/15 group-hover:bg-[#5c5243]/30 flex flex-col items-center justify-center cursor-pointer group-hover:opacity-0 transition-all border-r border-[#e6e0d2]">
+        <span className="material-symbols-outlined text-xs text-[#5c5243] font-bold">chevron_left</span>
+        <span className="text-[10px] font-bold text-[#5c5243] [writing-mode:vertical-lr] tracking-widest mt-2 uppercase">기록 & 보관함</span>
+      </div>
+
+      {/* Main Sidebar Inner Content */}
+      <div className="pl-5 flex-1 flex flex-col h-full overflow-hidden">
+        {/* Tabs */}
+        <div className="flex border-b border-[#e6e0d2] shrink-0 bg-[#f5f0e6]">
         <button
           onClick={() => setActiveTab('history')}
           className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
@@ -125,6 +133,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           </button>
         </div>
       )}
+      </div>
     </aside>
   );
 };

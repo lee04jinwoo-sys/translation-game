@@ -34,7 +34,7 @@ export async function checkGrammar(text: string): Promise<GrammarMatch[]> {
     params.append("text", text);
     params.append("language", "en-US");
 
-    const response = await fetch("https://api.languagetoolplus.com/v2/check", {
+    const response = await fetch("https://api.languagetool.org/v2/check", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
