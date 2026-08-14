@@ -97,6 +97,13 @@ export function App() {
   useEffect(() => { localStorage.setItem('tm_level_stats', JSON.stringify(levelStats)); }, [levelStats]);
 
   const seenCardIdsRef = useRef<Set<number>>(new Set());
+  const submittedTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (hasSubmitted) {
+      submittedTimeRef.current = Date.now();
+    }
+  }, [hasSubmitted]);
 
   // Draw cards from sentence pool with strict filter persistence and fresh card generation
   const drawCards = useCallback(async (count?: number, levels?: number[], topics?: string[]) => {
@@ -276,10 +283,12 @@ export function App() {
       if (hasSubmitted) {
         if (e.key === 'Enter' || e.key === 'n' || e.key === 'N' || e.key === 'ㅜ') {
           e.preventDefault();
+          if (Date.now() - submittedTimeRef.current < 800) return;
           handleNext();
           return;
         } else if (e.key === 'a' || e.key === 'A' || e.key === 's' || e.key === 'S' || e.key === 'ㅁ' || e.key === 'ㄴ') {
           e.preventDefault();
+          if (Date.now() - submittedTimeRef.current < 800) return;
           handleSaveAndNext();
           return;
         }

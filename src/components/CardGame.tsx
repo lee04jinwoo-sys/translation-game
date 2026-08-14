@@ -89,6 +89,13 @@ export const CardGame: React.FC<CardGameProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioPlayedForCardIdRef = useRef<number | null>(null);
   const cardSlotRef = useRef<HTMLDivElement>(null);
+  const submittedTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (hasSubmitted) {
+      submittedTimeRef.current = Date.now();
+    }
+  }, [hasSubmitted]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardSlotRef.current) return;
@@ -293,11 +300,14 @@ export const CardGame: React.FC<CardGameProps> = ({
       if (hasSubmitted && currentCard) {
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'n' || e.key === 'N') {
           e.preventDefault();
+          // Protect with 800ms cooldown so holding Enter doesn't accidentally skip answer verification!
+          if (Date.now() - submittedTimeRef.current < 800) return;
           onNext();
           return;
         }
         if (e.key === 'a' || e.key === 'A' || e.key === 's' || e.key === 'S' || e.key === 'ㅁ' || e.key === 'ㄴ') {
           e.preventDefault();
+          if (Date.now() - submittedTimeRef.current < 800) return;
           onSaveAndNext();
           return;
         }
