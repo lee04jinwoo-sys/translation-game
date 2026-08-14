@@ -1,6 +1,3 @@
-import { classifyDifficulty } from './difficulty';
-import { generateDynamicSentences } from './sentenceSynthesizer';
-
 export interface SentenceItem {
   id: number;
   korean: string;
@@ -9,8 +6,8 @@ export interface SentenceItem {
 }
 
 /**
- * Loads Korean→English sentence pairs from public/sentences.json.
- * Dynamically synthesizes fresh cards if database pool lacks unseen matching cards.
+ * Loads Korean→English sentence pairs from public/sentences.json (1,000 Tatoeba authentic dataset).
+ * Strictly filters by selected levels and topics without synthetic generation fallback.
  */
 export async function fetchSentences(
   count: number = 50,
@@ -20,39 +17,37 @@ export async function fetchSentences(
 ): Promise<SentenceItem[]> {
   try {
     const res = await fetch(`/sentences.json?_t=${Date.now()}`);
-    let allSentences: SentenceItem[] = [];
+    let allSentences: (SentenceItem & { level?: number; topic?: string })[] = [];
     if (res.ok) {
       allSentences = await res.json();
     }
     
-    // Filter by selected levels and topics
+    // Filter by selected levels and topics directly from JSON metadata
     const levelSet = new Set(levels.length > 0 ? levels : [1, 2, 3, 4, 5]);
     const topicSet = new Set(topics.length > 0 ? topics : ['all']);
     
-    // 1. Filter unseen items matching levels and topics
-    const unseenFiltered = allSentences.filter(s => {
-      if (seenCardIds.has(s.id)) return false;
-      const diff = classifyDifficulty(s.english);
-      const matchesLevel = levelSet.has(diff.level);
+    // 1. Filter unseen items matching selected levels and topics
+    let candidates = allSentences.filter(s => {
+      const matchesLevel = s.level ? levelSet.has(s.level) : true;
       const matchesTopic = topicSet.has('all') || (s.topic && topicSet.has(s.topic));
-      return matchesLevel && matchesTopic;
+      const isUnseen = !seenCardIds.has(s.id);
+      return matchesLevel && matchesTopic && isUnseen;
     });
 
-    let pool = [...unseenFiltered];
-
-    // 2. If unseen items in JSON are fewer than count, dynamically synthesize fresh new sentences!
-    if (pool.length < count) {
-      const neededCount = count - pool.length;
-      const synthesized = generateDynamicSentences(neededCount, levels, topics);
-      pool = [...pool, ...synthesized];
+    // 2. If unseen candidates pool is smaller than requested count, reset seen history for these filters
+    if (candidates.length < count) {
+      candidates = allSentences.filter(s => {
+        const matchesLevel = s.level ? levelSet.has(s.level) : true;
+        const matchesTopic = topicSet.has('all') || (s.topic && topicSet.has(s.topic));
+        return matchesLevel && matchesTopic;
+      });
     }
 
-    // Randomly shuffle sentences
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
-    
+    // Fisher-Yates Random Shuffle
+    const shuffled = [...candidates].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, Math.min(count, shuffled.length));
   } catch (err) {
-    console.error('Failed to load sentences, generating dynamically:', err);
-    return generateDynamicSentences(count, levels, topics);
+    console.error('Failed to load sentences from sentences.json:', err);
+    return [];
   }
 }
