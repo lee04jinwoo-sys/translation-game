@@ -335,18 +335,21 @@ export const CardGame: React.FC<CardGameProps> = ({
 
   // Render REAL upcoming cards in physical deck stack with ZERO FLICKER pre-rendering
   const renderCardStack = () => {
+    const isPromoting = cardAnimClass === 'card-deal-next' || cardAnimClass === 'card-deal-right';
     const stackCards = deck.slice(1, 4);
     return stackCards.map((card, idx) => {
-      const offset = (idx + 1) * 9;
-      const rotate = (idx + 1) % 2 === 0 ? (idx + 1) * 1.5 : (idx + 1) * -1.5;
-      const scale = 1 - (idx + 1) * 0.028;
-      const opacity = 0.95 - idx * 0.15;
+      // Smoothly promote background cards forward during card deal animation (350ms)
+      const effectiveIdx = isPromoting ? idx : idx + 1;
+      const offset = effectiveIdx * 9;
+      const rotate = effectiveIdx === 0 ? 0 : (effectiveIdx % 2 === 0 ? effectiveIdx * 1.5 : effectiveIdx * -1.5);
+      const scale = 1 - effectiveIdx * 0.028;
+      const opacity = effectiveIdx === 0 ? 1 : (0.95 - (effectiveIdx - 1) * 0.15);
       const isNextCard = idx === 0;
 
       return (
         <div
           key={card.id}
-          className={`absolute inset-0 rounded-3xl border-2 ${card.difficulty.color} bg-[#fdfbf7] pointer-events-none transition-all duration-300 shadow-md flex flex-col justify-between overflow-hidden`}
+          className={`absolute inset-0 rounded-3xl border-2 ${card.difficulty.color} bg-[#fdfbf7] pointer-events-none transition-all duration-350 cubic-bezier(0.22, 1, 0.36, 1) shadow-md flex flex-col justify-between overflow-hidden`}
           style={{
             transform: `translateY(${offset}px) rotate(${rotate}deg) scale(${scale})`,
             opacity,
