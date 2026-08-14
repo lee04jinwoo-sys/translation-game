@@ -140,7 +140,7 @@ export function App() {
 
   // Clear deck & reset seen card history
   const handleClearDeck = useCallback(() => {
-    if (window.confirm('학습 이력을 초기화하고 덱을 새로 가져올까요?')) {
+    if (window.confirm('학습 이력과 덱 카드를 모두 비울까요?')) {
       seenCardIdsRef.current.clear();
       setDeck([]);
       setTotalScore(0);
@@ -153,9 +153,8 @@ export function App() {
         4: { solved: 0, totalScore: 0 },
         5: { solved: 0, totalScore: 0 },
       });
-      drawCards();
     }
-  }, [drawCards]);
+  }, []);
 
   // Initial draw
   useEffect(() => { drawCards(); }, [drawCards]);
