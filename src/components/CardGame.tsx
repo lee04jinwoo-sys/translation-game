@@ -74,7 +74,6 @@ export const CardGame: React.FC<CardGameProps> = ({
   deckAnimClass,
   cardAnimClass,
   targetCount,
-  onDrawCards,
   onOpenConfig,
   onSubmit,
   onNext,
@@ -440,26 +439,16 @@ export const CardGame: React.FC<CardGameProps> = ({
               {deckError ? 'error' : 'playing_cards'}
             </span>
             <p className={`${deckError ? 'text-[#e02424]' : 'text-[#706b63]'} text-sm break-all font-medium`}>
-              {deckError ? `에러: ${deckError}` : '카드를 모두 소진했습니다'}
+              {deckError ? `에러: ${deckError}` : '학습을 시작하려면 덱을 가져오세요'}
             </p>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={onDrawCards}
-              className="flex items-center gap-2 h-12 px-6 rounded-2xl bg-[#5c5243] hover:bg-[#4a4236] text-white text-base font-semibold transition-all shadow-md"
-            >
-              <span className="material-symbols-outlined text-[22px]">playing_cards</span>
-              새 덱 가져오기 ({targetCount}장)
-            </button>
-            <button
-              onClick={onOpenConfig}
-              className="flex items-center gap-2 h-12 px-5 rounded-2xl bg-[#fdfbf7] hover:bg-[#eae3d5] text-[#2c2a29] text-base font-semibold transition-all border border-[#e6e0d2] shadow-sm"
-              title="조건 설정 (D)"
-            >
-              <span className="material-symbols-outlined text-[20px]">tune</span>
-              설정 (D)
-            </button>
-          </div>
+          <button
+            onClick={onOpenConfig}
+            className="flex items-center justify-center gap-2.5 h-13 px-8 rounded-2xl bg-[#5c5243] hover:bg-[#4a4236] text-white text-base font-semibold transition-all shadow-md active:scale-95 border border-[#4a4236]"
+          >
+            <span className="material-symbols-outlined text-[22px]">download_for_offline</span>
+            <span>덱 가져오기 (D)</span>
+          </button>
         </div>
       )}
 

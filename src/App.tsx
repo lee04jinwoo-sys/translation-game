@@ -156,8 +156,6 @@ export function App() {
     }
   }, []);
 
-  // Initial draw
-  useEffect(() => { drawCards(); }, [drawCards]);
 
   // Init Web Worker for AI Embeddings
   useEffect(() => {

@@ -27,8 +27,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           onClick={onOpenConfig}
           className="flex-1 flex items-center justify-center gap-1.5 h-11 py-2.5 px-3 rounded-xl bg-[#5c5243] hover:bg-[#4a4236] text-white font-semibold text-xs tracking-wide transition-all shadow-sm active:scale-[0.99] border border-[#4a4236]"
         >
-          <span className="material-symbols-outlined text-[18px]">playing_cards</span>
-          <span>새 덱 가져오기</span>
+          <span className="material-symbols-outlined text-[18px]">download_for_offline</span>
+          <span>덱 가져오기</span>
         </button>
         <button
           onClick={onClearDeck}
