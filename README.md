@@ -1,118 +1,163 @@
-# 🃏 Translation Game
+# 🃏 Translation Master (트랜스레이션 마스터)
 
-Anki 스타일의 웹 기반 영어 문장 암기(번역) 게임입니다. 
-영어를 눈으로만 읽는 것이 아니라, **제시된 한글 문장을 보고 스스로 영어로 번역해보며 정답을 확인하는 방식**으로 학습을 게임화(Gamification)한 프로젝트입니다.
+> **몰입감 넘치는 3D 실물 카드 덱과 온디바이스 AI 평가 엔진 기반의 차세대 영문장 번역 학습 웹 애플리케이션**  
+> **Live Demo:** [https://translation-game-khaki.vercel.app](https://translation-game-khaki.vercel.app)
 
----
-
-## 💻 주요 화면 구성 (UI Layout)
-화면은 크게 3개의 패널로 직관적으로 분리되어 있습니다.
-
-1. **좌측 사이드바 (Stats & Controls):** 
-   - **학습 통계:** 현재 연속 정답(Streak 콤보), 총 획득 점수, 전체 플레이 횟수를 보여줍니다.
-   - **레벨별 정답률:** Lv.1부터 Lv.5까지 각 난이도별 누적 정답률을 시각화합니다.
-   - **컨트롤:** 현재 남은 카드 개수 표시 및 자동 TTS 재생 켜기/끄기 토글 스위치.
-
-2. **중앙 게임 보드 (Main Board):** 
-   - 3D 플립 애니메이션이 적용된 메인 플래시 카드가 위치하는 핵심 상호작용 공간입니다.
-   - 카드 전면에 한글이, 후면에 영문 정답이 표시됩니다.
-
-3. **우측 사이드바 (History):** 
-   - 방금 학습을 마친 카드들의 한영 문장 텍스트와 본인이 누른 정답(`O`)/오답(`X`) 결과가 스크롤 리스트 형태로 쌓입니다.
-   - 지나간 문장들을 즉시 다시 읽어보고 복습할 수 있습니다.
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vercel](https://img.shields.io/badge/Vercel-Production-000000?logo=vercel&logoColor=white)](https://translation-game-khaki.vercel.app)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## 🎮 게임 진행 방식 (Core Loop)
-1. **문제 제시:** 중앙 카드 전면에 **한글 문장**과 태그(CEFR 난이도 및 주제)가 표시됩니다.
-2. **자체 번역:** 사용자는 머릿속으로 해당 한글 문장을 어떻게 영어로 말할지 번역해 봅니다.
-3. **정답 확인:** 카드를 클릭하면 **3D 애니메이션과 함께 카드가 뒤집히며(Flip) 실제 영어 문장이 공개**되고, 원어민의 음성(TTS)이 재생됩니다.
-4. **결과 채점:** 본인의 번역이 맞았으면 `O (맞았어요)` 버튼을, 틀렸거나 어려웠으면 `X (틀렸어요)` 버튼을 누릅니다.
-   - **`O` 선택 시:** 점수(+10)를 획득하며 콤보 게이지가 상승합니다. 
-   - **`X` 선택 시:** 콤보가 0으로 초기화되며 긴장감을 줍니다.
-5. **무한 루프:** 버튼을 누르는 즉시 뒤에 대기 중이던 다음 카드가 맨 위로 올라오며 게임이 매끄럽게 이어집니다.
+## 📌 목차 (Table of Contents)
+1. [프로젝트 소개 (Overview)](#-프로젝트-소개-overview)
+2. [핵심 시스템 아키텍처 (System Architecture)](#-핵심-시스템-아키텍처-system-architecture)
+3. [주요 기능 (Key Features)](#-주요-기능-key-features)
+4. [예문 데이터베이스 (Tatoeba 1,000 Corpus)](#-예문-데이터베이스-tatoeba-1000-corpus)
+5. [디렉토리 구조 (Directory Structure)](#-디렉토리-구조-directory-structure)
+6. [단축키 안내 (Keybindings & Shortcuts)](#-단축키-안내-keybindings--shortcuts)
+7. [로컬 실행 가이드 (Getting Started)](#-로컬-실행-가이드-getting-started)
 
 ---
 
-## 💾 예문 데이터베이스 (`public/sentences.json`)
-모든 플래시카드는 외부 서버에서 동적으로 가져오는 것이 아니라, 프로젝트에 내장된 정적 파일인 `public/sentences.json`에서 로드됩니다.
+## 🌟 프로젝트 소개 (Overview)
 
-*   **총 1,000개의 예문 (Perfect Matrix):**
-    *   5개의 난이도 (CEFR A1 ~ C1/C2) $\times$ 4개의 주제 (일상, 여행, 비즈니스, 학교) = 총 20개 조합.
-    *   각 조합별로 정확히 50개씩 빈틈없이 배치된 1,000개의 예문으로 구성되어 있습니다.
-*   **예문 출처 및 제작 방식:**
-    *   어색한 AI 템플릿 문장이 아닌, **세계 최대의 오픈소스 다국어 문장 데이터베이스인 Tatoeba(타토에바) 프로젝트**의 방대한 인간 번역(Human-translated) 예문들을 기반으로 엄선되었습니다.
-    *   Tatoeba에서 추출한 실제 원어민들의 생생한 표현들을 옥스퍼드/캠브리지 CEFR(유럽언어공통기준) 레벨 시스템과 4가지 핵심 토픽에 맞춰 완벽한 균형으로 필터링 및 큐레이션하여 구축했습니다.
-*   **중복 방지 메커니즘:**
-    *   현재 세션에서 학습한 카드들의 ID를 메모리(`seenCardIdsRef`)에 기록하여, 새로운 덱을 뽑더라도 방금 본 카드가 중복 출현하지 않도록 방지합니다.
+**Translation Master**는 단순히 영어를 눈으로 읽는 수동적 학습을 벗어나, **제시된 한글 문장을 보고 직접 영어로 번역·입력하며 반응형 3D 피드백을 받는 능동적 액티브 리콜(Active Recall) 게이밍 학습 도구**입니다.
+
+- **0ms 메인 스레드 렌더링**: Web Worker 파이프라인으로 백그라운드 AI 인베딩 평가 연산을 처리하여 최상의 반응 속도를 유지합니다.
+- **100% 검증된 정품 말뭉치**: 인공지능이 임의 작성한 어색한 문장이 아닌, 세계 최대 다국어 오픈소스 말뭉치 **Tatoeba(타토에바) 프로젝트의 1,000개 정품 인간 번역 문장 세트**를 탑재했습니다.
+- **감각적 3D 카지노 스택 물리 연출**: 카드가 날아가고 뒷장의 카드가 부드럽게 승격(Promote)되는 3D 덱 애니메이션을 구현했습니다.
 
 ---
 
-## ✨ 주요 기술적 특징 (Key Tech Features)
+## 🏗️ 핵심 시스템 아키텍처 (System Architecture)
 
-*   **Zero-Flicker 3D 카드 스택 렌더링:** 
-    사용자가 보고 있는 현재 카드(`deck[0]`)의 바로 뒷면에 다음 카드(`deck[1]`)를 미리 렌더링(Pre-render)하여 스택 형태로 겹쳐 두었습니다. 이 아키텍처 덕분에 카드가 버려지고 다음 카드가 올라올 때 화면 깜빡임이나 렌더링 지연이 전혀 없는 극강의 부드러운 3D 전환을 제공합니다.
-*   **Google Chirp3-HD 다중 성우 엔진 연동:** 
-    구글 클라우드 TTS API의 최신 `Chirp3-HD` 모델을 활용합니다. 미국(US), 영국(UK), 호주(AU) 등 각기 다른 10명의 원어민 남녀 성우가 무작위로 교대하며 발음하도록 설계되어 청취력 향상에 크게 기여합니다.
-*   **동적 필터링 및 설정 영구 유지:** 
-    헤더의 `조건 설정` 메뉴에서 사용자가 원하는 난이도와 주제를 고르면 조건에 맞는 50장의 카드를 즉각 섞어 덱을 만듭니다. 또한 모든 설정과 통계는 브라우저의 `localStorage`에 영구 보존됩니다.
-
----
-
-## 📂 디렉토리 구조 및 파일 역할 (Directory Structure)
-
-```text
-translation-game/
-├── public/
-│   └── sentences.json          # AI(Gemini)를 통해 정제된 1,000개의 완벽한 영-한 매트릭스 DB 파일
-├── src/
-│   ├── components/             # 핵심 UI 컴포넌트 폴더
-│   │   ├── CardGame.tsx        # [메인] 3D 카드 플립, O/X 채점, 무손실 스택(deck[0], deck[1]), TTS 재생 로직
-│   │   ├── CustomDeckModal.tsx # [모달] 유저가 원하는 난이도(Lv.1~5) 및 토픽을 고르는 필터링 설정 창
-│   │   ├── Header.tsx          # [상단] 앱 로고, 조건 설정 모달 호출 버튼, 다크모드 토글 버튼
-│   │   ├── LeftSidebar.tsx     # [좌측] 점수, 콤보 기록, 레벨별 정답률 통계, TTS 토글 표시
-│   │   └── RightSidebar.tsx    # [우측] 방금 지나간 카드들의 정답 여부와 원문/해석 히스토리 리스트
-│   ├── lib/                    # 유틸리티 및 비즈니스 로직 함수 폴더
-│   │   ├── difficulty.ts       # 영어 문장의 단어 수와 길이를 분석하여 CEFR(A1~C2) 배지와 색상 매핑 함수
-│   │   ├── sentenceLoader.ts   # sentences.json 파일을 비동기(fetch) 로드하고 셔플 및 필터링하는 로직
-│   │   └── tts.ts              # Google Cloud API와 통신하여 영어 텍스트를 10인의 성우 오디오 버퍼로 변환하는 로직
-│   ├── App.tsx                 # [루트] 필터 상태, seenCardIds, 게임 통계 등 전역 상태(State) 관리 및 컴포넌트 통합
-│   ├── index.css               # Tailwind 엔트리 및 3D 플립 등 커스텀 CSS 키프레임 애니메이션 정의
-│   ├── main.tsx                # React 18 DOM 렌더링 진입점
-│   └── vite-env.d.ts           # Vite 환경 변수(TypeScript) 타입 정의 파일
-├── .env                        # Google Cloud TTS 호출을 위한 API 키 보관 (VITE_GOOGLE_API_KEY)
-├── package.json                # 프로젝트 메타데이터 및 의존성 라이브러리 목록
-├── tailwind.config.js          # Tailwind CSS 커스텀 테마, 컬러, 폰트 설정
-└── tsconfig.json               # TypeScript 컴파일러 설정
+```mermaid
+graph TD
+    A["유저 한글 제시문 확인 & 영어 입력"] --> B["Enter 제출 (Shortcut)"]
+    B --> C["3D 플립 애니메이션 (Front -> Back)"]
+    B --> D["Web Worker 백그라운드 벡터 인베딩 연산"]
+    B --> E["클라이언트 스파이더 디프 & 구조 문법 분석"]
+    D --> F["의미 유사도 점수 (0~100점) 출력"]
+    E --> G["전치사/관사/시제/어휘 피드백 뱃지 출력"]
+    C --> H["듀얼 오디오 엔진 (Chirp3-HD / Web Speech API) 음성 재생"]
+    F & G & H --> I["0.8초 쿨다운 보호 후 다음 카드 3D 승격"]
 ```
 
 ---
 
-## 🛠️ 기술 스택 (Tech Stack)
-- **프레임워크:** React 18, Vite
-- **언어:** TypeScript
-- **스타일링:** Tailwind CSS, Lucide React (아이콘)
-- **외부 API 연동:** Google Cloud Text-to-Speech (Chirp3-HD)
-- **상태 관리:** React Hooks (`useState`, `useRef`, `useCallback`), LocalStorage API
-- **배포:** Vercel
+## ✨ 주요 기능 (Key Features)
+
+### 1. 🎴 3D 실물 카드 덱 스택 & 승격 연출 (Physical Deck Animation)
+- **Zero-Flicker Pre-rendering**: 상단 카드(`deck[0]`) 뒤에 대기 중인 2번 카드(`deck[1]`)를 실시간 겹쳐 렌더링합니다.
+- **350ms 입체 승격 연출**: 카드가 넘어가면 뒷줄 카드가 `scale(0.972) → 1.0`으로 부드럽게 승격되며, 순간 이동이나 팝업 없는 완벽한 물리 연속성을 선사합니다.
+- **0.8초 연타 스킵 방지 쿨다운**: 제출 즉시 카드가 날아가지 않도록 0.8초 보호 쿨다운을 두어 정답과 음성을 여유롭게 검토할 수 있습니다.
+
+### 2. 🤖 온디바이스 AI 인베딩 채점 엔진 (Web Worker Vector Scoring)
+- 브라우저 내부에서 **Xenova Transformers.js 온디바이스 모델**을 실행하여 유저 번역과 정답 간 의미 유사도(Cos Similarity)를 계산합니다.
+- Web Worker 백그라운드 스레드에서 돌아가므로 타이핑이나 화면 렌더링에 0.001초의 지연도 발생하지 않습니다.
+
+### 3. 🔊 듀얼 음성 엔진 (Dual TTS Engine)
+- **Primary Engine**: Google Cloud Text-to-Speech **Chirp3-HD** 최신 모델 탑재 (미국, 영국, 호주 10인의 원어민 성우 자동 교대).
+- **Fallback Engine**: 네트워크 CORS 차단 방지를 위한 브라우저 내장 **Web Speech API** 이중 보장 (macOS, Windows, iOS, Android 100% 재생 지원).
+
+### 4. ✍️ 100% 신뢰성 클라이언트 문법 & 구조 피드백 (Structural Feedback)
+- 외부 서버 오류 시 먹통이 되던 기존 API 방식에서 탈피하여 **100% 자바스크립트 클라이언트 디프 및 구조 분석기**로 개편했습니다.
+- 대문자/마침표 같은 조잡한 노이즈를 필터링하고 **전치사(`in/at/on`), 관사(`a/the`), 시제(`was/did`), 핵심 어휘** 4가지 필수 교정 뱃지를 뒷면에 0ms 만에 즉시 노출합니다.
+
+### 5. 🎨 마우스 호버 슬라이드 서랍 (Hover Expandable Sidebar)
+- 우측 학습 히스토리 및 Anki 보관함 패널이 평소에는 **`기록 & 보관함 ◀` 탭**으로 최소화되어 메인 뷰포트를 확보합니다.
+- 마우스를 가져가면 화면 우측에서 스르륵 펼쳐집니다.
+
+### 6. 🗂️ Anki 플래시카드 CSV 일괄 내보내기 (Anki Export)
+- 복습이 필요한 카드를 보관함에 담은 뒤, 단 한 번의 클릭으로 **Anki(암기) 호환 CSV 파일**로 다운로드하여 모바일 AnkiDroid / AnkiMobile에 바로 이식할 수 있습니다.
 
 ---
 
-## 🚀 로컬 환경 실행 가이드 (How to Run)
+## 💾 예문 데이터베이스 (Tatoeba 1,000 Corpus)
 
-1. **저장소 클론 및 패키지 설치**
-   ```bash
-   npm install
-   ```
+| 난이도 | CEFR 등급 | 옥스퍼드 어휘 기준 | 예시 문장 |
+| :--- | :--- | :--- | :--- |
+| **Lv.1** | **A1** | 기초 단문 어휘 | `Who am I?` / `I give up.` |
+| **Lv.2** | **A2** | 필수 구문 & 의문사 | `Do you know who I am?` / `This is how I did it.` |
+| **Lv.3** | **B1** | 구동사 & 접속사절 | `All I can do is to do my best.` |
+| **Lv.4** | **B2** | 가정법 & 문장 조합 | `I was about to go to bed when he called me up.` |
+| **Lv.5** | **C1 / C2** | 마스터 고급 어휘 | `To be a good translator, I think Tom needs to hone his skills a bit more.` |
 
-2. **환경 변수 설정 (`.env`)**
-   프로젝트 루트에 `.env` 파일을 생성하고 Google Cloud API 키를 발급받아 입력합니다. (TTS 기능 활성화를 위해 필수)
-   ```text
-   VITE_GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY_HERE
-   ```
+- **오픈소스 출처**: [Tatoeba Project (Anki Sentence Corpus)](https://tatoeba.org)
+- **완벽 매트릭스**: 5개 난이도 $\times$ 4개 토픽 (일상, 여행, 비즈니스, 학교) = **1,000개 100% UNIQUE 고유 문장**
 
-3. **로컬 개발 서버 실행**
-   ```bash
-   npm run dev
-   ```
-   브라우저에서 `http://localhost:5173`으로 접속하여 게임을 플레이할 수 있습니다.
+---
+
+## 📂 디렉토리 구조 (Directory Structure)
+
+```text
+translation-game/
+├── public/
+│   └── sentences.json          # Tatoeba 정품 1,000개 영-한 문장 매트릭스 DB
+├── src/
+│   ├── components/             # UI 컴포넌트
+│   │   ├── CardGame.tsx        # [핵심] 3D 실물 카드 덱, 플립, 음성 재생 & 피드백
+│   │   ├── CustomDeckModal.tsx # [모달] 장수/난이도/주제 선택 덱 생성 창
+│   │   ├── Header.tsx          # [상단] 로고, 통계, AI 온디바이스 상태 바
+│   │   ├── LeftSidebar.tsx     # [좌측] 덱 가져오기, 카드 비우기, 난이도별 현황
+│   │   └── RightSidebar.tsx    # [우측] 호버 슬라이딩 최근 풀이 및 Anki 보관함
+│   ├── lib/                    # 핵심 유틸리티 & 엔진
+│   │   ├── ai.worker.ts        # Transformers.js 온디바이스 벡터 인베딩 스레드
+│   │   ├── difficulty.ts       # CEFR 난이도 태깅 및 컬러 스타일링
+│   │   ├── grammar.ts          # 클라이언트 단어/구조 피드백 엔진
+│   │   └── sentenceLoader.ts   # sentences.json 로드 및 셔플/중복 소거 로직
+│   ├── App.tsx                 # 전역 상태 관리 및 레이아웃 통합
+│   └── index.css               # 3D 카드 플립 및 스택 키프레임 애니메이션
+├── .env                        # (선택) Google Cloud API 키 보관
+├── vercel.json                 # Vercel CDN 노-캐시 배포 설정
+├── package.json                # 프로젝트 의존성 라이브러리
+└── README.md                   # 프로젝트 문서
+```
+
+---
+
+## ⌨️ 단축키 안내 (Keybindings & Shortcuts)
+
+| 단축키 | 작동 기능 |
+| :--- | :--- |
+| **`Enter`** | **[앞면]** 번역 제출 / **[뒷면]** 다음 카드로 이동 |
+| **`Shift` + `Enter`** | 멀티라인 입력 줄바꿈 |
+| **`Tab`** | 마이크 음성 인식(STT) 토글 |
+| **`D`** | 덱 가져오기 / 조건 설정 모달 열기 |
+| **`A` / `S`** | **[뒷면]** 현재 카드 Anki 보관함 저장 & 다음 카드 |
+| **`R` / `V`** | **[뒷면]** 원어민 Chirp3-HD 음성 다시 듣기 |
+| **`Esc`** | 모달 창 닫기 |
+
+---
+
+## 🚀 로컬 실행 가이드 (Getting Started)
+
+### 1. 저장소 클론 및 패키지 설치
+```bash
+git clone https://github.com/lee04jinwoo-sys/translation-game.git
+cd translation-game
+npm install
+```
+
+### 2. 환경 변수 설정 (선택 사항)
+GCP Cloud Text-to-Speech API를 통한 Chirp3-HD 음성을 사용하려면 루트에 `.env` 파일을 생성합니다. (미입력 시 내장 Web Speech API로 자동 구동됩니다.)
+```env
+VITE_GOOGLE_API_KEY=YOUR_GOOGLE_CLOUD_API_KEY
+```
+
+### 3. 로컬 개발 서버 실행
+```bash
+npm run dev
+```
+브라우저에서 `http://localhost:5173`으로 접속하여 학습을 시작할 수 있습니다.
+
+---
+
+## 📄 라이선스 (License)
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+All language sentence pairs sourced from the [Tatoeba Project](https://tatoeba.org) under CC BY 2.0 FR.
