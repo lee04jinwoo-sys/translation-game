@@ -240,33 +240,30 @@ export const CardGame: React.FC<CardGameProps> = ({
       }
     }
 
-    // 2. Secondary Engine: Google gTTS Audio Stream
-    try {
-      const googleAudioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=en&client=tw-ob`;
-      const audio = new Audio(googleAudioUrl);
-      audioRef.current = audio;
+    // 2. Secondary Engine: Native Web SpeechSynthesis API (100% Reliable, Zero Network CORS Errors)
+    if ('speechSynthesis' in window) {
+      try {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = selectedVoice.startsWith('en-GB') ? 'en-GB' : selectedVoice.startsWith('en-AU') ? 'en-AU' : 'en-US';
+        utterance.rate = 0.95;
+        
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Karen') || v.name.includes('Alex')));
+        if (preferredVoice) utterance.voice = preferredVoice;
 
-      audio.onended = () => {
-        setIsPlayingAudio(false);
-        audioRef.current = null;
-      };
-
-      audio.onerror = () => {
-        // Fallback to Youdao
-        const fallbackUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
-        const fallbackAudio = new Audio(fallbackUrl);
-        audioRef.current = fallbackAudio;
-        fallbackAudio.onended = () => {
+        utterance.onend = () => {
           setIsPlayingAudio(false);
-          audioRef.current = null;
         };
-        fallbackAudio.play().catch(() => setIsPlayingAudio(false));
-      };
+        utterance.onerror = () => {
+          setIsPlayingAudio(false);
+        };
 
-      audio.play().catch(() => setIsPlayingAudio(false));
-    } catch (e) {
-      console.error('Audio playback error:', e);
-      setIsPlayingAudio(false);
+        window.speechSynthesis.speak(utterance);
+        return;
+      } catch (e) {
+        console.error('SpeechSynthesis error:', e);
+        setIsPlayingAudio(false);
+      }
     }
   }, []);
 

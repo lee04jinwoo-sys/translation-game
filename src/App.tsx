@@ -259,7 +259,7 @@ export function App() {
       text2: currentCard.english,
     });
 
-    checkGrammar(userInput.trim()).then(issues => {
+    checkGrammar(userInput.trim(), currentCard.english).then(issues => {
       setGrammarIssues(issues);
       setIsCheckingGrammar(false);
     });
