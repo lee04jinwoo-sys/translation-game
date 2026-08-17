@@ -20,6 +20,10 @@
   ],
   "rewrites": [
     {
+      "source": "/languagetool-api/:path*",
+      "destination": "https://api.languagetool.org/v2/:path*"
+    },
+    {
       "source": "/tatoeba-api/:path*",
       "destination": "https://tatoeba.org/en/api_v0/:path*"
     },

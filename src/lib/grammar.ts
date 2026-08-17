@@ -6,34 +6,108 @@ export interface GrammarMatch {
   ruleId: string;
 }
 
+interface LanguageToolRawMatch {
+  message: string;
+  shortMessage?: string;
+  replacements: { value: string }[];
+  rule: {
+    id: string;
+    description: string;
+    issueType: string;
+    category?: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
 /**
- * Intelligent 100% Client-side English Grammar & Structural Matcher.
- * Operates offline with zero network latency or external API failure dependencies.
+ * Noise rules to ignore (trivial capitalization, trailing punctuation, etc.)
+ */
+const IGNORED_RULE_IDS = new Set([
+  'UPPERCASE_SENTENCE_START',
+  'PUNCTUATION_PARAGRAPH_END',
+  'EN_UNPAIRED_BRACKETS',
+  'COMMA_PARENTHESIS_WHITESPACE',
+]);
+
+/**
+ * High-performance Grammar & Structural Matcher.
+ * 1. Primary Engine: Vercel Proxy LanguageTool Professional Engine (/languagetool-api/check)
+ * 2. Fallback Engine: Client-Side Structural & Diff Matcher (0ms Offline Safety)
  */
 export async function checkGrammar(userInput: string, referenceInput?: string): Promise<GrammarMatch[]> {
   if (!userInput || !userInput.trim()) return [];
 
+  const text = userInput.trim();
+
+  // 1. Try Vercel Edge Proxy to LanguageTool API
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s timeout
+
+    const params = new URLSearchParams();
+    params.append('text', text);
+    params.append('language', 'en-US');
+
+    const response = await fetch('/languagetool-api/check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+      body: params.toString(),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.matches)) {
+        const filteredMatches: GrammarMatch[] = data.matches
+          .filter((m: LanguageToolRawMatch) => !IGNORED_RULE_IDS.has(m.rule?.id))
+          .map((m: LanguageToolRawMatch) => ({
+            message: m.message,
+            shortMessage: m.shortMessage || m.rule?.description || '문법 유의',
+            replacements: (m.replacements || []).slice(0, 3),
+            category: m.rule?.category?.name || '문법 교정',
+            ruleId: m.rule?.id || 'GRAMMAR_RULE',
+          }));
+
+        if (filteredMatches.length > 0) {
+          return filteredMatches;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('LanguageTool proxy failed or timed out, using fallback client matcher:', error);
+  }
+
+  // 2. Fallback Engine: Client-side Structural & Heuristic Matcher
+  return runClientFallbackMatcher(text, referenceInput);
+}
+
+function runClientFallbackMatcher(userText: string, referenceInput?: string): GrammarMatch[] {
   const matches: GrammarMatch[] = [];
-  const userText = userInput.trim();
   const userWords = userText.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
 
-  // 1. Basic Heuristic Checks (Articles & Capitalization)
+  // Capitalization Check
   if (userText.length > 0 && userText[0] !== userText[0].toUpperCase()) {
     matches.push({
-      message: "첫 글자는 대문자로 시작하는 것이 좋습니다.",
-      shortMessage: "대문자 시작",
+      message: '첫 글자는 대문자로 시작하는 것이 좋습니다.',
+      shortMessage: '대문자 시작',
       replacements: [{ value: userText[0].toUpperCase() + userText.slice(1) }],
-      category: "맞춤법",
-      ruleId: "CAPITALIZATION"
+      category: '맞춤법',
+      ruleId: 'CAPITALIZATION',
     });
   }
 
-  // 2. Structural & Word Diff Analysis against Reference Answer (if available)
   if (referenceInput && referenceInput.trim()) {
     const refText = referenceInput.trim();
     const refWords = refText.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
-    
-    // Check Prepositions (전치사 검사)
+
+    // Check Prepositions
     const prepositions = ['in', 'at', 'on', 'to', 'for', 'with', 'by', 'from', 'about', 'of', 'into', 'over'];
     for (const prep of prepositions) {
       if (refWords.includes(prep) && !userWords.includes(prep)) {
@@ -41,13 +115,13 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
           message: `전치사 '${prep}'이(가) 누락되었습니다.`,
           shortMessage: `전치사 '${prep}' 누락`,
           replacements: [{ value: prep }],
-          category: "전치사",
-          ruleId: "PREPOSITION_MISSING"
+          category: '전치사',
+          ruleId: 'PREPOSITION_MISSING',
         });
       }
     }
 
-    // Check Articles (관사 검사: a, an, the)
+    // Check Articles
     const articles = ['a', 'an', 'the'];
     for (const art of articles) {
       if (refWords.includes(art) && !userWords.includes(art)) {
@@ -55,13 +129,13 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
           message: `관사 '${art}'을(를) 추가하면 더욱 자연스럽습니다.`,
           shortMessage: `관사 '${art}' 권장`,
           replacements: [{ value: art }],
-          category: "관사",
-          ruleId: "ARTICLE_MISSING"
+          category: '관사',
+          ruleId: 'ARTICLE_MISSING',
         });
       }
     }
 
-    // Check Tense & Auxiliary Verbs (시제 및 조동사 검사)
+    // Check Tense / Auxiliaries
     const auxVerbs = ['was', 'were', 'did', 'had', 'would', 'could', 'should', 'is', 'are', 'am', 'do', 'does', 'have', 'has'];
     for (const aux of auxVerbs) {
       if (refWords.includes(aux) && !userWords.includes(aux)) {
@@ -69,13 +143,13 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
           message: `시제/조동사 '${aux}' 사용을 확인해보세요.`,
           shortMessage: `조동사 '${aux}' 권장`,
           replacements: [{ value: aux }],
-          category: "시제/조동사",
-          ruleId: "TENSE_AUXILIARY"
+          category: '시제/조동사',
+          ruleId: 'TENSE_AUXILIARY',
         });
       }
     }
 
-    // Key Content Word Diff
+    // Content Vocabulary
     const userSet = new Set(userWords);
     const missingContentWords: string[] = [];
 
@@ -88,10 +162,10 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
     if (missingContentWords.length > 0 && matches.length < 3) {
       matches.push({
         message: `핵심 단어 제안: ${missingContentWords.slice(0, 3).join(', ')}`,
-        shortMessage: "핵심 어휘 제안",
+        shortMessage: '핵심 어휘 제안',
         replacements: missingContentWords.slice(0, 3).map(w => ({ value: w })),
-        category: "어휘 제안",
-        ruleId: "VOCABULARY_SUGGESTION"
+        category: '어휘 제안',
+        ruleId: 'VOCABULARY_SUGGESTION',
       });
     }
   }
