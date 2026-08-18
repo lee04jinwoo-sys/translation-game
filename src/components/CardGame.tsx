@@ -21,7 +21,6 @@ interface CardGameProps {
   isScoring: boolean;
   isCheckingGrammar: boolean;
   score: number | null;
-  grammarScore: number | null;
   grammarIssues: GrammarMatch[];
   deckAnimClass: string;
   cardAnimClass: string;
@@ -71,7 +70,6 @@ export const CardGame: React.FC<CardGameProps> = ({
   isScoring,
   isCheckingGrammar,
   score,
-  grammarScore,
   grammarIssues,
   deckAnimClass,
   cardAnimClass,
@@ -588,9 +586,9 @@ export const CardGame: React.FC<CardGameProps> = ({
                 className={`absolute inset-0 rounded-3xl border-2 ${currentCard.difficulty.color} bg-[#fdfbf7] p-6 overflow-hidden backface-hidden rotate-y-180 flex flex-col justify-between shadow-xl`}
                 style={{ boxShadow: `0 12px 36px ${currentCard.difficulty.glowColor}, 0 4px 20px rgba(0,0,0,0.08)` }}
               >
-                {/* Back Header (Dual Score & Active Voice Actor Badge) */}
+                  {/* Back Header: 5-Star Ratings for Meaning & Grammar */}
                 <div className="flex justify-between items-center border-b border-[#e6e0d2] pb-3">
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col">
                     <span className="text-xs font-semibold text-[#706b63] uppercase tracking-wider">
                       채점 결과
                     </span>
@@ -600,28 +598,33 @@ export const CardGame: React.FC<CardGameProps> = ({
                       </span>
                     )}
                   </div>
-                  {score !== null && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-[#f5f0e6] border border-[#e6e0d2]">
-                        <span className="text-[9px] font-bold text-[#706b63]">의미 전달력</span>
-                        <span className="text-sm font-bold text-[#2c2a29]">{score}점</span>
-                      </div>
-                      {grammarScore !== null && (
-                        <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-[#f5f0e6] border border-[#e6e0d2]">
-                          <span className="text-[9px] font-bold text-[#706b63]">문법 정확도</span>
-                          <span className={`text-sm font-bold ${grammarScore >= 80 ? 'text-[#0e9f6e]' : grammarScore >= 60 ? 'text-[#d97706]' : 'text-[#e02424]'}`}>
-                            {grammarScore}점
-                          </span>
+                  <div className="flex items-center gap-4">
+                    {/* Meaning Star Rating */}
+                    {score !== null && (() => {
+                      const meaningStars = score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
+                      return (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="text-[10px] font-bold text-[#706b63]">의미 {meaningStars}/5</span>
+                          <div className="flex items-center text-amber-500 text-sm tracking-widest">
+                            {'★'.repeat(meaningStars)}{'☆'.repeat(5 - meaningStars)}
+                          </div>
                         </div>
-                      )}
-                      {grammarScore !== null && (
-                        <div className="flex flex-col items-center px-3 py-1 rounded-xl bg-[#5c5243] text-white shadow-sm">
-                          <span className="text-[9px] font-bold text-amber-200">종합 점수</span>
-                          <span className="text-base font-extrabold">{Math.round((score * 0.5) + (grammarScore * 0.5))}점</span>
+                      );
+                    })()}
+
+                    {/* Grammar Star Rating */}
+                    {(() => {
+                      const grammarStars = Math.max(0, 5 - grammarIssues.length);
+                      return (
+                        <div className="flex flex-col items-end gap-0.5 border-l border-[#e6e0d2] pl-3">
+                          <span className="text-[10px] font-bold text-[#706b63]">문법 {grammarStars}/5</span>
+                          <div className="flex items-center text-emerald-600 text-sm tracking-widest">
+                            {'★'.repeat(grammarStars)}{'☆'.repeat(5 - grammarStars)}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )}
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 {/* Back Content Area */}

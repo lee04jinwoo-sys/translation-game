@@ -60,10 +60,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           </div>
 
           <div className="p-2 py-2.5 rounded-lg bg-[#f5f0e6] border border-[#e6e0d2] flex flex-col items-center justify-center text-center">
-            <span className="font-sans text-xl font-bold text-[#2c2a29]">
-              {totalPlayed > 0 ? avgScore : '—'}
+            <span className="font-sans text-lg font-bold text-amber-600 flex items-center gap-1">
+              {totalPlayed > 0 ? `★ ${(Math.min(5, (avgScore / 100) * 5)).toFixed(1)}` : '—'}
             </span>
-            <span className="text-[10px] text-[#706b63] font-medium">평균 점수</span>
+            <span className="text-[10px] text-[#706b63] font-medium">평균 별점</span>
           </div>
         </div>
       </div>
