@@ -27,7 +27,6 @@ export function App() {
   const [isScoring, setIsScoring] = useState(false);
   const [isCheckingGrammar, setIsCheckingGrammar] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const [grammarScore, setGrammarScore] = useState<number | null>(null);
   const [grammarIssues, setGrammarIssues] = useState<GrammarMatch[]>([]);
 
   // AI Model Engine State
@@ -261,8 +260,7 @@ export function App() {
     });
 
     checkGrammar(userInput.trim(), currentCard.english).then(res => {
-      setGrammarIssues(res.matches);
-      setGrammarScore(res.grammarScore);
+      setGrammarIssues(res);
       setIsCheckingGrammar(false);
     });
   };
@@ -275,7 +273,6 @@ export function App() {
       setUserInput('');
       setHasSubmitted(false);
       setScore(null);
-      setGrammarScore(null);
       setGrammarIssues([]);
       setCardAnimClass('');
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -402,7 +399,6 @@ export function App() {
           isScoring={isScoring}
           isCheckingGrammar={isCheckingGrammar}
           score={score}
-          grammarScore={grammarScore}
           grammarIssues={grammarIssues}
           deckAnimClass={deckAnimClass}
           cardAnimClass={cardAnimClass}
