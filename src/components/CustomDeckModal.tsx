@@ -206,6 +206,31 @@ export const CustomDeckModal: React.FC<CustomDeckModalProps> = ({
           </span>
         </div>
 
+        {/* Google Cloud API Key Input for Chirp3-HD Voice */}
+        <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-[#fff8f1] border border-[#feecdc]">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-bold text-[#92400e] flex items-center gap-1">
+              <span className="material-symbols-outlined text-[16px]">key</span>
+              Chirp3-HD 원어민 성우 API 키 (선택)
+            </label>
+            <span className="text-[10px] text-[#706b63]">AIzaSy... 키 입력</span>
+          </div>
+          <input
+            type="password"
+            placeholder="Google Cloud API Key (AIzaSy...) 입력 시 Chirp3-HD 활성화"
+            defaultValue={localStorage.getItem('tm_gcp_api_key') || ''}
+            onChange={(e) => {
+              const val = e.target.value.trim();
+              if (val) {
+                localStorage.setItem('tm_gcp_api_key', val);
+              } else {
+                localStorage.removeItem('tm_gcp_api_key');
+              }
+            }}
+            className="p-2 rounded-lg bg-[#fdfbf7] border border-[#e6e0d2] text-xs text-[#2c2a29] focus:outline-none focus:border-[#5c5243]"
+          />
+        </div>
+
         {/* Action Buttons */}
         <div className="flex gap-3 pt-1">
           <button
