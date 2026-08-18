@@ -245,7 +245,26 @@ export const CardGame: React.FC<CardGameProps> = ({
       }
     }
 
-    // 2. Secondary Engine: Native Web SpeechSynthesis API (100% Reliable, Zero Network CORS Errors)
+    // 2. Secondary Engine: Google HD Natural Voice Stream via Vercel Edge Proxy (Zero CORS, Zero API Key Required)
+    try {
+      const ttsUrl = `/google-tts-api?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=en&client=tw-ob`;
+      const audio = new Audio(ttsUrl);
+      audioRef.current = audio;
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        audioRef.current = null;
+      };
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        audioRef.current = null;
+      };
+      await audio.play();
+      return;
+    } catch (e) {
+      console.warn('Google TTS Stream proxy failed, falling back to Web Speech:', e);
+    }
+
+    // 3. Tertiary Engine: Native Web SpeechSynthesis API (0ms Offline Safety)
     if ('speechSynthesis' in window) {
       try {
         const utterance = new SpeechSynthesisUtterance(cleanText);

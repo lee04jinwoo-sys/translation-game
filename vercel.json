@@ -28,6 +28,10 @@
       "destination": "https://tatoeba.org/en/api_v0/:path*"
     },
     {
+      "source": "/google-tts-api",
+      "destination": "https://translate.google.com/translate_tts"
+    },
+    {
       "source": "/:path*",
       "destination": "/index.html"
     }
