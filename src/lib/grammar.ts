@@ -6,11 +6,6 @@ export interface GrammarMatch {
   ruleId: string;
 }
 
-export interface GrammarAnalysisResult {
-  matches: GrammarMatch[];
-  grammarScore: number; // 0 ~ 100
-}
-
 interface LanguageToolRawMatch {
   message: string;
   shortMessage?: string;
@@ -37,39 +32,12 @@ const IGNORED_RULE_IDS = new Set([
 ]);
 
 /**
- * Calculate Grammar Score (0 ~ 100) based on issue severity penalties.
- */
-function calculateGrammarScore(matches: (LanguageToolRawMatch | GrammarMatch)[]): number {
-  if (!matches || matches.length === 0) return 100;
-
-  let totalPenalty = 0;
-
-  for (const m of matches) {
-    const categoryId = (m as any).rule?.category?.id || (m as GrammarMatch).ruleId || '';
-    const issueType = (m as any).rule?.issueType || '';
-
-    if (categoryId === 'GRAMMAR' || categoryId === 'TENSE_AND_ASPECT' || categoryId === 'WORD_ORDER') {
-      totalPenalty += 20; // Major structural & grammar error
-    } else if (categoryId === 'PREPOSITIONS' || categoryId === 'ARTICLES' || categoryId === 'PRONOUNS' || categoryId === 'NOUN_PLURAL') {
-      totalPenalty += 15; // Preposition/Article/Pronoun error
-    } else if (categoryId === 'TYPOS' || issueType === 'misspelling' || categoryId === 'SPELLING') {
-      totalPenalty += 10; // Spelling typo
-    } else {
-      totalPenalty += 5; // Minor style / contextual error
-    }
-  }
-
-  return Math.max(0, 100 - totalPenalty);
-}
-
-/**
  * High-performance Grammar & Structural Matcher.
- * Returns matches array and calculated grammar score (0~100).
+ * 1. Primary Engine: Vercel Proxy LanguageTool Professional Engine (/languagetool-api/check)
+ * 2. Fallback Engine: Client-Side Structural & Diff Matcher (0ms Offline Safety)
  */
-export async function checkGrammar(userInput: string, referenceInput?: string): Promise<GrammarAnalysisResult> {
-  if (!userInput || !userInput.trim()) {
-    return { matches: [], grammarScore: 100 };
-  }
+export async function checkGrammar(userInput: string, referenceInput?: string): Promise<GrammarMatch[]> {
+  if (!userInput || !userInput.trim()) return [];
 
   const text = userInput.trim();
 
@@ -97,18 +65,19 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data.matches)) {
-        const rawFiltered = data.matches.filter((m: LanguageToolRawMatch) => !IGNORED_RULE_IDS.has(m.rule?.id));
-        const grammarScore = calculateGrammarScore(rawFiltered);
+        const filteredMatches: GrammarMatch[] = data.matches
+          .filter((m: LanguageToolRawMatch) => !IGNORED_RULE_IDS.has(m.rule?.id))
+          .map((m: LanguageToolRawMatch) => ({
+            message: m.message,
+            shortMessage: m.shortMessage || m.rule?.description || '문법 유의',
+            replacements: (m.replacements || []).slice(0, 3),
+            category: m.rule?.category?.name || '문법 교정',
+            ruleId: m.rule?.id || 'GRAMMAR_RULE',
+          }));
 
-        const filteredMatches: GrammarMatch[] = rawFiltered.map((m: LanguageToolRawMatch) => ({
-          message: m.message,
-          shortMessage: m.shortMessage || m.rule?.description || '문법 유의',
-          replacements: (m.replacements || []).slice(0, 3),
-          category: m.rule?.category?.name || '문법 교정',
-          ruleId: m.rule?.id || 'GRAMMAR_RULE',
-        }));
-
-        return { matches: filteredMatches, grammarScore };
+        if (filteredMatches.length > 0) {
+          return filteredMatches;
+        }
       }
     }
   } catch (error) {
@@ -119,7 +88,7 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
   return runClientFallbackMatcher(text, referenceInput);
 }
 
-function runClientFallbackMatcher(userText: string, referenceInput?: string): GrammarAnalysisResult {
+function runClientFallbackMatcher(userText: string, referenceInput?: string): GrammarMatch[] {
   const matches: GrammarMatch[] = [];
   const userWords = userText.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
 
@@ -201,6 +170,76 @@ function runClientFallbackMatcher(userText: string, referenceInput?: string): Gr
     }
   }
 
-  const grammarScore = calculateGrammarScore(matches);
-  return { matches, grammarScore };
+  return matches;
+}
+
+/**
+ * 4-Tier Severity-based Grammar Star Rating Engine:
+ * - 0 errors: 5 Stars ⭐⭐⭐⭐⭐
+ * - Most severe error is Level 4 (Minor/Typo/Article): 4 Stars ⭐⭐⭐⭐
+ * - Most severe error is Level 3 (Standard Accuracy/Adverb/Plural): 3 Stars ⭐⭐⭐
+ * - Most severe error is Level 2 (Critical Structural/Tense/Agreement/Prep): 2 Stars ⭐⭐
+ * - Most severe error is Level 1 (Fatal/Word Order/Pronoun/Confused): 1 Star ⭐
+ */
+export function getGrammarStarsFromMatches(matches: GrammarMatch[]): number {
+  if (!matches || matches.length === 0) {
+    return 5; // 0 errors = 5 Stars
+  }
+
+  let minSeverityLevel = 5;
+
+  for (const match of matches) {
+    const categoryKey = (match.ruleId || match.category || '').toUpperCase();
+    let level = 3; // Default to Level 3
+
+    // Level 1: Fatal Errors (1 Star)
+    if (
+      categoryKey.includes('CONFUSED') ||
+      categoryKey.includes('PRONOUN') ||
+      categoryKey.includes('WORD_ORDER') ||
+      categoryKey.includes('WORDORDER')
+    ) {
+      level = 1;
+    }
+    // Level 2: Critical Structural Errors (2 Stars)
+    else if (
+      categoryKey.includes('TENSE') ||
+      categoryKey.includes('AUXILIARY') ||
+      categoryKey.includes('AGREEMENT') ||
+      categoryKey.includes('PREPOSITION') ||
+      categoryKey.includes('PREP') ||
+      categoryKey.includes('PHRASAL') ||
+      categoryKey.includes('GRAMMAR')
+    ) {
+      level = 2;
+    }
+    // Level 3: Standard Accuracy Errors (3 Stars)
+    else if (
+      categoryKey.includes('ADJECTIVE') ||
+      categoryKey.includes('ADVERB') ||
+      categoryKey.includes('COMPARATIVE') ||
+      categoryKey.includes('PLURAL') ||
+      categoryKey.includes('CONJUNCTION') ||
+      categoryKey.includes('VOCABULARY')
+    ) {
+      level = 3;
+    }
+    // Level 4: Minor & Stylistic Errors (4 Stars)
+    else if (
+      categoryKey.includes('ARTICLE') ||
+      categoryKey.includes('TYPO') ||
+      categoryKey.includes('SPELLING') ||
+      categoryKey.includes('CAPITALIZATION') ||
+      categoryKey.includes('STYLE') ||
+      categoryKey.includes('REDUNDANCY')
+    ) {
+      level = 4;
+    }
+
+    if (level < minSeverityLevel) {
+      minSeverityLevel = level;
+    }
+  }
+
+  return Math.min(5, Math.max(1, minSeverityLevel));
 }

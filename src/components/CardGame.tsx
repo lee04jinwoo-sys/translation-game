@@ -1,6 +1,6 @@
 import React, { type RefObject, useState, useEffect, useCallback, useRef } from 'react';
 import type { DifficultyInfo } from '../lib/difficulty';
-import type { GrammarMatch } from '../lib/grammar';
+import { type GrammarMatch, getGrammarStarsFromMatches } from '../lib/grammar';
 
 export interface CardItem {
   id: number;
@@ -612,9 +612,9 @@ export const CardGame: React.FC<CardGameProps> = ({
                       );
                     })()}
 
-                    {/* Grammar Star Rating */}
+                    {/* Grammar Star Rating (Severity-Based: 0 errors = 5 Stars, Level 4 = 4 Stars, Level 3 = 3 Stars, Level 2 = 2 Stars, Level 1 = 1 Star) */}
                     {(() => {
-                      const grammarStars = Math.max(0, 5 - grammarIssues.length);
+                      const grammarStars = getGrammarStarsFromMatches(grammarIssues);
                       return (
                         <div className="flex flex-col items-end gap-0.5 border-l border-[#e6e0d2] pl-3">
                           <span className="text-[10px] font-bold text-[#706b63]">문법 {grammarStars}/5</span>
@@ -667,51 +667,26 @@ export const CardGame: React.FC<CardGameProps> = ({
                     </div>
                   )}
 
-                  {/* Grammar Feedback Section: Specific Category Badges & Explanations */}
-                  <div className="flex flex-col gap-2 mt-1">
-                    {grammarIssues.length > 0 ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs font-bold text-[#b45309] flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[16px]">quiz</span>
-                            <span>감지된 문법 교정 항목 ({grammarIssues.length}건)</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          {grammarIssues.map((match, idx) => (
-                            <div key={idx} className="p-3 rounded-2xl bg-[#fffbeb] border border-[#fde68a] text-xs flex flex-col gap-1.5 shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <span className="px-2 py-0.5 rounded-md bg-[#fef3c7] text-[#92400e] font-bold text-[11px]">
-                                  {match.category || match.shortMessage || '문법 유의'}
-                                </span>
-                                {match.ruleId && (
-                                  <span className="text-[10px] font-mono text-[#b45309]/70">
-                                    #{match.ruleId}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[#78350f] font-semibold leading-relaxed">
-                                {match.message}
-                              </div>
-                              {match.replacements && match.replacements.length > 0 && (
-                                <div className="text-[#92400e] text-[11px] font-medium flex items-center gap-1.5 pt-0.5 border-t border-[#fde68a]/60">
-                                  <span>올바른 추천:</span>
-                                  <span className="px-2 py-0.5 rounded bg-white text-[#047857] font-bold border border-[#a7f3d0]">
-                                    {match.replacements.slice(0, 3).map((r: { value: string }) => r.value).join(', ')}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="p-3 rounded-2xl bg-[#ecfdf5] border border-[#a7f3d0] text-xs flex items-center gap-2 text-[#047857] font-semibold">
-                        <span className="material-symbols-outlined text-lg">check_circle</span>
-                        <span>문법 및 오탈자 오류가 없습니다! 완벽한 문장입니다.</span>
+                  {grammarIssues.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-1">
+                      <div className="text-xs font-semibold text-[#d97706] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px]">build</span>
+                        문법 피드백 ({grammarIssues.length}건)
                       </div>
-                    )}
-                  </div>
+                      <div className="flex flex-col gap-2">
+                        {grammarIssues.map((match, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-[#fff8f1] border border-[#feecdc] text-xs flex flex-col gap-1">
+                            <div className="text-[#92400e] font-medium">{match.message}</div>
+                            {match.replacements.length > 0 && (
+                              <div className="text-[#706b63]">
+                                추천: <span className="text-[#03543f] font-bold">{match.replacements.slice(0, 3).map((r: { value: string }) => r.value).join(', ')}</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {currentCard.difficulty.level === 5 && (
                     <p className="text-[#a8a49c] text-xs font-medium text-center mt-3">
                       마스터 레벨! C1/C2 원어민 최고급 문장입니다.
