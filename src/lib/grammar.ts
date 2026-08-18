@@ -6,6 +6,11 @@ export interface GrammarMatch {
   ruleId: string;
 }
 
+export interface GrammarAnalysisResult {
+  matches: GrammarMatch[];
+  grammarScore: number; // 0 ~ 100
+}
+
 interface LanguageToolRawMatch {
   message: string;
   shortMessage?: string;
@@ -32,12 +37,39 @@ const IGNORED_RULE_IDS = new Set([
 ]);
 
 /**
- * High-performance Grammar & Structural Matcher.
- * 1. Primary Engine: Vercel Proxy LanguageTool Professional Engine (/languagetool-api/check)
- * 2. Fallback Engine: Client-Side Structural & Diff Matcher (0ms Offline Safety)
+ * Calculate Grammar Score (0 ~ 100) based on issue severity penalties.
  */
-export async function checkGrammar(userInput: string, referenceInput?: string): Promise<GrammarMatch[]> {
-  if (!userInput || !userInput.trim()) return [];
+function calculateGrammarScore(matches: (LanguageToolRawMatch | GrammarMatch)[]): number {
+  if (!matches || matches.length === 0) return 100;
+
+  let totalPenalty = 0;
+
+  for (const m of matches) {
+    const categoryId = (m as any).rule?.category?.id || (m as GrammarMatch).ruleId || '';
+    const issueType = (m as any).rule?.issueType || '';
+
+    if (categoryId === 'GRAMMAR' || categoryId === 'TENSE_AND_ASPECT' || categoryId === 'WORD_ORDER') {
+      totalPenalty += 20; // Major structural & grammar error
+    } else if (categoryId === 'PREPOSITIONS' || categoryId === 'ARTICLES' || categoryId === 'PRONOUNS' || categoryId === 'NOUN_PLURAL') {
+      totalPenalty += 15; // Preposition/Article/Pronoun error
+    } else if (categoryId === 'TYPOS' || issueType === 'misspelling' || categoryId === 'SPELLING') {
+      totalPenalty += 10; // Spelling typo
+    } else {
+      totalPenalty += 5; // Minor style / contextual error
+    }
+  }
+
+  return Math.max(0, 100 - totalPenalty);
+}
+
+/**
+ * High-performance Grammar & Structural Matcher.
+ * Returns matches array and calculated grammar score (0~100).
+ */
+export async function checkGrammar(userInput: string, referenceInput?: string): Promise<GrammarAnalysisResult> {
+  if (!userInput || !userInput.trim()) {
+    return { matches: [], grammarScore: 100 };
+  }
 
   const text = userInput.trim();
 
@@ -65,19 +97,18 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data.matches)) {
-        const filteredMatches: GrammarMatch[] = data.matches
-          .filter((m: LanguageToolRawMatch) => !IGNORED_RULE_IDS.has(m.rule?.id))
-          .map((m: LanguageToolRawMatch) => ({
-            message: m.message,
-            shortMessage: m.shortMessage || m.rule?.description || '문법 유의',
-            replacements: (m.replacements || []).slice(0, 3),
-            category: m.rule?.category?.name || '문법 교정',
-            ruleId: m.rule?.id || 'GRAMMAR_RULE',
-          }));
+        const rawFiltered = data.matches.filter((m: LanguageToolRawMatch) => !IGNORED_RULE_IDS.has(m.rule?.id));
+        const grammarScore = calculateGrammarScore(rawFiltered);
 
-        if (filteredMatches.length > 0) {
-          return filteredMatches;
-        }
+        const filteredMatches: GrammarMatch[] = rawFiltered.map((m: LanguageToolRawMatch) => ({
+          message: m.message,
+          shortMessage: m.shortMessage || m.rule?.description || '문법 유의',
+          replacements: (m.replacements || []).slice(0, 3),
+          category: m.rule?.category?.name || '문법 교정',
+          ruleId: m.rule?.id || 'GRAMMAR_RULE',
+        }));
+
+        return { matches: filteredMatches, grammarScore };
       }
     }
   } catch (error) {
@@ -88,7 +119,7 @@ export async function checkGrammar(userInput: string, referenceInput?: string): 
   return runClientFallbackMatcher(text, referenceInput);
 }
 
-function runClientFallbackMatcher(userText: string, referenceInput?: string): GrammarMatch[] {
+function runClientFallbackMatcher(userText: string, referenceInput?: string): GrammarAnalysisResult {
   const matches: GrammarMatch[] = [];
   const userWords = userText.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
 
@@ -170,5 +201,6 @@ function runClientFallbackMatcher(userText: string, referenceInput?: string): Gr
     }
   }
 
-  return matches;
+  const grammarScore = calculateGrammarScore(matches);
+  return { matches, grammarScore };
 }

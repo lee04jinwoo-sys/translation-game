@@ -21,6 +21,7 @@ interface CardGameProps {
   isScoring: boolean;
   isCheckingGrammar: boolean;
   score: number | null;
+  grammarScore: number | null;
   grammarIssues: GrammarMatch[];
   deckAnimClass: string;
   cardAnimClass: string;
@@ -70,6 +71,7 @@ export const CardGame: React.FC<CardGameProps> = ({
   isScoring,
   isCheckingGrammar,
   score,
+  grammarScore,
   grammarIssues,
   deckAnimClass,
   cardAnimClass,
@@ -586,9 +588,9 @@ export const CardGame: React.FC<CardGameProps> = ({
                 className={`absolute inset-0 rounded-3xl border-2 ${currentCard.difficulty.color} bg-[#fdfbf7] p-6 overflow-hidden backface-hidden rotate-y-180 flex flex-col justify-between shadow-xl`}
                 style={{ boxShadow: `0 12px 36px ${currentCard.difficulty.glowColor}, 0 4px 20px rgba(0,0,0,0.08)` }}
               >
-                {/* Back Header (Score & Active Voice Actor Badge) */}
+                {/* Back Header (Dual Score & Active Voice Actor Badge) */}
                 <div className="flex justify-between items-center border-b border-[#e6e0d2] pb-3">
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-0.5">
                     <span className="text-xs font-semibold text-[#706b63] uppercase tracking-wider">
                       채점 결과
                     </span>
@@ -599,8 +601,25 @@ export const CardGame: React.FC<CardGameProps> = ({
                     )}
                   </div>
                   {score !== null && (
-                    <div className={`text-3xl font-bold font-sans ${score >= 80 ? 'text-[#0e9f6e]' : score >= 60 ? 'text-[#d97706]' : 'text-[#e02424]'}`}>
-                      {score}점
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-[#f5f0e6] border border-[#e6e0d2]">
+                        <span className="text-[9px] font-bold text-[#706b63]">의미 전달력</span>
+                        <span className="text-sm font-bold text-[#2c2a29]">{score}점</span>
+                      </div>
+                      {grammarScore !== null && (
+                        <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-[#f5f0e6] border border-[#e6e0d2]">
+                          <span className="text-[9px] font-bold text-[#706b63]">문법 정확도</span>
+                          <span className={`text-sm font-bold ${grammarScore >= 80 ? 'text-[#0e9f6e]' : grammarScore >= 60 ? 'text-[#d97706]' : 'text-[#e02424]'}`}>
+                            {grammarScore}점
+                          </span>
+                        </div>
+                      )}
+                      {grammarScore !== null && (
+                        <div className="flex flex-col items-center px-3 py-1 rounded-xl bg-[#5c5243] text-white shadow-sm">
+                          <span className="text-[9px] font-bold text-amber-200">종합 점수</span>
+                          <span className="text-base font-extrabold">{Math.round((score * 0.5) + (grammarScore * 0.5))}점</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
