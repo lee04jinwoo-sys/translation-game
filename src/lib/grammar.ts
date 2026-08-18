@@ -151,3 +151,36 @@ export function getGrammarStarsFromMatches(matches: GrammarMatch[]): number {
 
   return Math.min(5, Math.max(1, minSeverityLevel));
 }
+
+/**
+ * Vocabulary Level Rating (0~5 Stars) based on CEFR complexity & word length
+ */
+export function getVocabularyStars(userInput: string, cardLevel: number = 1): number {
+  if (!userInput || !userInput.trim()) return 1;
+  const words = userInput.trim().toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
+  const realWords = words.filter(w => w.length > 2);
+  
+  if (realWords.length === 0) return 1;
+
+  const maxLen = Math.max(...realWords.map(w => w.length));
+  const advancedCount = realWords.filter(w => w.length >= 7).length;
+
+  if (advancedCount >= 2 || maxLen >= 9 || cardLevel >= 5) return 5;
+  if (advancedCount >= 1 || maxLen >= 7 || cardLevel >= 4) return 4;
+  if (maxLen >= 5 || cardLevel >= 3) return 3;
+  if (maxLen >= 4 || cardLevel >= 2) return 2;
+  return 1;
+}
+
+/**
+ * Fluency Response Speed Rating (0~5 Stars) based on elapsed seconds vs word count
+ */
+export function getFluencyStars(elapsedSeconds: number, wordCount: number): number {
+  if (elapsedSeconds <= 0) return 5;
+  const secPerWord = elapsedSeconds / Math.max(1, wordCount);
+  if (secPerWord <= 0.6 || elapsedSeconds <= 3) return 5;
+  if (secPerWord <= 1.0 || elapsedSeconds <= 6) return 4;
+  if (secPerWord <= 1.5 || elapsedSeconds <= 10) return 3;
+  if (secPerWord <= 2.2 || elapsedSeconds <= 15) return 2;
+  return 1;
+}

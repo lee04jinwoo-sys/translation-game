@@ -1,6 +1,6 @@
 import React, { type RefObject, useState, useEffect, useCallback, useRef } from 'react';
 import type { DifficultyInfo } from '../lib/difficulty';
-import { type GrammarMatch, getGrammarStarsFromMatches } from '../lib/grammar';
+import { type GrammarMatch, getGrammarStarsFromMatches, getVocabularyStars, getFluencyStars } from '../lib/grammar';
 
 export interface CardItem {
   id: number;
@@ -84,17 +84,22 @@ export const CardGame: React.FC<CardGameProps> = ({
   const [sttSupported, setSttSupported] = useState(true);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [activeVoiceName, setActiveVoiceName] = useState<string>('');
+  const [elapsedSec, setElapsedSec] = useState<number>(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioPlayedForCardIdRef = useRef<number | null>(null);
   const cardSlotRef = useRef<HTMLDivElement>(null);
   const submittedTimeRef = useRef<number>(0);
+  const cardRenderTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     if (hasSubmitted) {
       submittedTimeRef.current = Date.now();
+      setElapsedSec((Date.now() - cardRenderTimeRef.current) / 1000);
+    } else if (currentCard) {
+      cardRenderTimeRef.current = Date.now();
     }
-  }, [hasSubmitted]);
+  }, [hasSubmitted, currentCard?.id]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardSlotRef.current) return;
@@ -598,28 +603,55 @@ export const CardGame: React.FC<CardGameProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4">
-                    {/* Meaning Star Rating */}
+                  <div className="flex items-center gap-3">
+                    {/* 1. Meaning Star Rating */}
                     {score !== null && (() => {
                       const meaningStars = score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
                       return (
-                        <div className="flex flex-col items-end gap-0.5">
+                        <div className="flex flex-col items-center gap-0.5">
                           <span className="text-[10px] font-bold text-[#706b63]">의미 {meaningStars}/5</span>
-                          <div className="flex items-center text-amber-500 text-sm tracking-widest">
+                          <div className="flex items-center text-amber-500 text-xs tracking-tight">
                             {'★'.repeat(meaningStars)}{'☆'.repeat(5 - meaningStars)}
                           </div>
                         </div>
                       );
                     })()}
 
-                    {/* Grammar Star Rating (Severity-Based: 0 errors = 5 Stars, Level 4 = 4 Stars, Level 3 = 3 Stars, Level 2 = 2 Stars, Level 1 = 1 Star) */}
+                    {/* 2. Grammar Star Rating */}
                     {(() => {
                       const grammarStars = getGrammarStarsFromMatches(grammarIssues);
                       return (
-                        <div className="flex flex-col items-end gap-0.5 border-l border-[#e6e0d2] pl-3">
+                        <div className="flex flex-col items-center gap-0.5 border-l border-[#e6e0d2] pl-2.5">
                           <span className="text-[10px] font-bold text-[#706b63]">문법 {grammarStars}/5</span>
-                          <div className="flex items-center text-emerald-600 text-sm tracking-widest">
+                          <div className="flex items-center text-emerald-600 text-xs tracking-tight">
                             {'★'.repeat(grammarStars)}{'☆'.repeat(5 - grammarStars)}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* 3. Vocabulary Star Rating */}
+                    {(() => {
+                      const vocabStars = getVocabularyStars(userInput, currentCard.difficulty.level);
+                      return (
+                        <div className="flex flex-col items-center gap-0.5 border-l border-[#e6e0d2] pl-2.5">
+                          <span className="text-[10px] font-bold text-[#706b63]">어휘 {vocabStars}/5</span>
+                          <div className="flex items-center text-blue-600 text-xs tracking-tight">
+                            {'★'.repeat(vocabStars)}{'☆'.repeat(5 - vocabStars)}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* 4. Fluency Star Rating */}
+                    {(() => {
+                      const wordCount = userInput.trim().split(/\s+/).length;
+                      const fluencyStars = getFluencyStars(elapsedSec, wordCount);
+                      return (
+                        <div className="flex flex-col items-center gap-0.5 border-l border-[#e6e0d2] pl-2.5">
+                          <span className="text-[10px] font-bold text-[#706b63]">순발력 {fluencyStars}/5</span>
+                          <div className="flex items-center text-purple-600 text-xs tracking-tight">
+                            {'★'.repeat(fluencyStars)}{'☆'.repeat(5 - fluencyStars)}
                           </div>
                         </div>
                       );
