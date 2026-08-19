@@ -212,7 +212,7 @@ export const CardGame: React.FC<CardGameProps> = ({
     // 1. Primary Engine: Google Cloud Text-to-Speech Chirp3-HD API
     if (gcpApiKey) {
       try {
-        const response = await fetch(`/gcp-tts-api/synthesize?key=${gcpApiKey}`, {
+        const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${gcpApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
