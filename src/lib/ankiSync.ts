@@ -114,8 +114,7 @@ export async function syncCardToAnki(
               '소리': soundTag,
             },
             options: {
-              allowDuplicate: false,
-              duplicateScope: 'deck',
+              allowDuplicate: true,
             },
             tags: ['translation-master'],
           },
