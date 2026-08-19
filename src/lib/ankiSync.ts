@@ -31,7 +31,7 @@ export async function syncCardToAnki(
   // 1. Synthesize Chirp3-HD audio for Anki
   if (apiKey) {
     try {
-      const response = await fetch(`/gcp-tts-api?key=${apiKey}`, {
+      const response = await fetch(`/gcp-tts-api/synthesize?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

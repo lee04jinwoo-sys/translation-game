@@ -28,8 +28,8 @@
       "destination": "https://tatoeba.org/en/api_v0/:path*"
     },
     {
-      "source": "/gcp-tts-api",
-      "destination": "https://texttospeech.googleapis.com/v1/text:synthesize"
+      "source": "/gcp-tts-api/:path*",
+      "destination": "https://texttospeech.googleapis.com/v1/text/:path*"
     },
     {
       "source": "/google-tts-api",
