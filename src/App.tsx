@@ -374,6 +374,17 @@ export function App() {
     5: deck.filter(c => c.difficulty.level === 5).length,
   };
 
+  const handleBatchDirectSyncAnki = useCallback(async (items: SavedItem[]) => {
+    if (items.length === 0) return;
+    showToast(`Anki 덱으로 ${items.length}개 문장 동기화 중...`);
+    let successCount = 0;
+    for (const item of items) {
+      const res = await syncCardToAnki(item.english, item.korean);
+      if (res.success) successCount++;
+    }
+    showToast(`Anki [English Sentence] 덱에 ${successCount}개 문장이 성공적으로 전송되었습니다!`);
+  }, []);
+
   return (
     <div className="flex flex-col h-screen bg-app-bg text-app-text-primary font-sans select-none overflow-hidden relative">
       {/* Toast Notification Banner */}
@@ -442,6 +453,7 @@ export function App() {
           savedItems={savedItems}
           onToggleSave={toggleSave}
           onExportAnki={exportToAnkiCSV}
+          onDirectSyncAnki={handleBatchDirectSyncAnki}
         />
       </main>
 

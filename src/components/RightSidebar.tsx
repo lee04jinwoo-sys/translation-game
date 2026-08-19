@@ -24,6 +24,7 @@ interface RightSidebarProps {
   savedItems: SavedItem[];
   onToggleSave: (item: SavedItem) => void;
   onExportAnki: (items: SavedItem[]) => void;
+  onDirectSyncAnki?: (items: SavedItem[]) => void;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({
@@ -33,6 +34,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   savedItems,
   onToggleSave,
   onExportAnki,
+  onDirectSyncAnki,
 }) => {
   return (
     <aside className="fixed right-0 top-[53px] bottom-0 z-30 w-[320px] border-l border-[#e6e0d2] bg-[#fdfbf7] flex flex-col shrink-0 overflow-hidden text-[#2c2a29] shadow-2xl transition-transform duration-300 ease-out translate-x-[calc(100%-20px)] hover:translate-x-0 group">
@@ -116,7 +118,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
       {/* Anki Export Panel */}
       {activeTab === 'saved' && (
-        <div className="p-4 bg-[#f5f0e6] border-t border-[#e6e0d2] flex flex-col gap-3 shrink-0">
+        <div className="p-4 bg-[#f5f0e6] border-t border-[#e6e0d2] flex flex-col gap-2.5 shrink-0">
           <div className="flex justify-between items-center text-[13px] text-[#706b63]">
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[16px] text-[#5c5243]">bookmark</span>보관된 문장
@@ -124,12 +126,20 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <span className="font-serif font-bold text-[#2c2a29]">{savedItems.length}개</span>
           </div>
           <button
+            onClick={() => onDirectSyncAnki ? onDirectSyncAnki(savedItems) : onExportAnki(savedItems)}
+            disabled={savedItems.length === 0}
+            className="w-full flex items-center justify-center gap-2 h-[42px] rounded-xl bg-[#059669] text-white text-[13px] font-semibold transition-all hover:bg-[#047857] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          >
+            <span className="material-symbols-outlined text-[18px]">bolt</span>
+            Anki 덱으로 직접 보내기 (English Sentence)
+          </button>
+          <button
             onClick={() => onExportAnki(savedItems)}
             disabled={savedItems.length === 0}
-            className="w-full flex items-center justify-center gap-2 h-[42px] rounded-xl bg-[#5c5243] text-white text-[13px] font-semibold transition-all hover:bg-[#4a4236] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="w-full flex items-center justify-center gap-1.5 h-[34px] rounded-xl bg-[#eae3d5] text-[#5c5243] text-[12px] font-medium transition-all hover:bg-[#dfd7c7] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            일괄 전송 (CSV)
+            <span className="material-symbols-outlined text-[16px]">download</span>
+            CSV 백업 파일 다운로드
           </button>
         </div>
       )}
