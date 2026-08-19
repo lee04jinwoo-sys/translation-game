@@ -13,6 +13,15 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/tatoeba-api/, '/en/api_v0')
+      },
+      '/anki-api': {
+        target: 'http://127.0.0.1:8765',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/anki-api/, ''),
+        headers: {
+          Origin: 'http://localhost'
+        }
       }
     }
   },
@@ -24,6 +33,15 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/tatoeba-api/, '/en/api_v0')
+      },
+      '/anki-api': {
+        target: 'http://127.0.0.1:8765',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/anki-api/, ''),
+        headers: {
+          Origin: 'http://localhost'
+        }
       }
     }
   }
