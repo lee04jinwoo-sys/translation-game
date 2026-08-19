@@ -9,6 +9,7 @@ import { classifyDifficulty } from './lib/difficulty';
 import { fetchSentences } from './lib/sentenceLoader';
 import { checkGrammar, type GrammarMatch } from './lib/grammar';
 import { exportToAnkiCSV } from './lib/export';
+import { syncCardToAnki } from './lib/ankiSync';
 import './App.css';
 
 export function App() {
@@ -279,6 +280,13 @@ export function App() {
     }, 350);
   }, []);
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   // Save to Anki and Next (Symmetrical Rightward Deal)
   const handleSaveAndNext = useCallback(() => {
     if (currentCard) {
@@ -287,6 +295,12 @@ export function App() {
         korean: currentCard.korean,
         english: currentCard.english,
       });
+
+      // Direct One-Click Anki Sync (English Sentence note type via AnkiConnect)
+      syncCardToAnki(currentCard.english, currentCard.korean).then(res => {
+        showToast(res.message);
+      });
+
       setCardAnimClass('card-deal-right');
       setTimeout(() => {
         setDeck(prev => prev.slice(1));
@@ -361,7 +375,15 @@ export function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-app-bg text-app-text-primary font-sans select-none overflow-hidden">
+    <div className="flex flex-col h-screen bg-app-bg text-app-text-primary font-sans select-none overflow-hidden relative">
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#2c2a29] text-[#fdfbf7] border border-[#5c5243] px-5 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold flex items-center gap-2 animate-bounce">
+          <span className="material-symbols-outlined text-amber-400 text-lg">stars</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Header */}
       <Header
         deckCount={deck.length}

@@ -35,7 +35,7 @@ interface CardGameProps {
 }
 
 // 10 Diverse Google Cloud Chirp3-HD Voice Actors (US, UK, AU Male & Female)
-const CHIRP3_HD_VOICES = [
+export const CHIRP3_HD_VOICES = [
   'en-US-Chirp3-HD-Vindemiatrix', // US Studio Female
   'en-US-Chirp3-HD-Achernar',     // US Studio Male
   'en-US-Chirp3-HD-Schedar',      // US Warm Male
@@ -212,7 +212,7 @@ export const CardGame: React.FC<CardGameProps> = ({
     // 1. Primary Engine: Google Cloud Text-to-Speech Chirp3-HD API
     if (gcpApiKey) {
       try {
-        const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${gcpApiKey}`, {
+        const response = await fetch(`/gcp-tts-api?key=${gcpApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
